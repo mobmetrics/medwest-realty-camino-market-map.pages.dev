@@ -981,20 +981,23 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:26px 0 10px}
         <label class="tog"><input type="checkbox" id="t_cs_contig" checked><span class="sw" style="background:#29374D"></span>3–6K SF contiguous avail<span class="ct" id="c_cs_contig"></span></label>
         <div class="sublist">
           <label class="tog"><input type="checkbox" id="t_cs_south">South of SR-55 only</label>
-          <label class="tog" title="94 of the 170 availabilities across both counties sit within 1 mile of an existing health center. Tick this to drop them and leave only the 76 in areas no health center covers."><input type="checkbox" id="t_cs_hidering">Hide availabilities within 1 mile of an FQHC<span class="ct" id="c_cs_hidden"></span></label>
+          <label class="tog" title="Orange County only. Ticking this drops every Orange County availability already sitting within 1 mile of a health center and leaves the ones in areas no health center covers. Riverside has its own switch in the Riverside County Market group below."><input type="checkbox" id="t_cs_hidering">Hide availabilities within 1 mile of an FQHC<span class="ct" id="c_cs_hidden"></span></label>
         </div>
-        <div class="note lnote" hidden>Every building with a 3,000–6,000 SF contiguous space available. Tick <b>South of SR-55 only</b> to narrow to Camino's south county market — everything south and east of <b>SR-55</b> (State Route 55, the Costa Mesa Freeway) — and the shading follows it. Tick <b>Hide availabilities within 1 mile of an FQHC</b> to surface only locations that are not already served. Source: CoStar export 9/3/2026 · Orange County only.</div>
+        <div class="note lnote" hidden>Every building with a 3,000–6,000 SF contiguous space available. Tick <b>South of SR-55 only</b> to narrow to Camino's south county market — everything south and east of <b>SR-55</b> (State Route 55, the Costa Mesa Freeway) — and the shading follows it. Tick <b>Hide availabilities within 1 mile of an FQHC</b> to surface only locations that are not already served — that switch covers Orange County; Riverside has its own in the group below. Source: CoStar export 9/3/2026 · Orange County only.</div>
       </div>
 
       <div class="pgroup">
         <h4>Riverside County Market</h4>
         <label class="tog"><input type="checkbox" id="t_rivline" checked><span class="swl" style="border-color:#29374D"></span>Riverside County line</label>
         <label class="tog"><input type="checkbox" id="t_riv" checked><span class="sw" style="background:#29374D"></span>Riverside availabilities<span class="ct" id="c_riv"></span></label>
-        <label class="tog"><input type="checkbox" id="t_rivfq"><span class="sw" style="background:#0369a1"></span>Riverside health centers<span class="ct" id="c_rivfq"></span></label>
+        <div class="sublist">
+          <label class="tog" title="Riverside County only. Ticking this drops every Riverside availability already sitting within 1 mile of a Riverside health center and leaves the ones in areas no health center covers."><input type="checkbox" id="t_riv_hidering">Hide availabilities within 1 mile of an FQHC<span class="ct" id="c_riv_hidden"></span></label>
+        </div>
+        <label class="tog"><input type="checkbox" id="t_rivfq" checked><span class="sw" style="background:#0369a1"></span>Riverside health centers<span class="ct" id="c_rivfq"></span></label>
         <div class="sublist">
           <label class="tog"><input type="checkbox" id="t_rivfq_extra">Add mobile &amp; seasonal sites<span class="ct" id="c_rivfq_extra"></span></label>
         </div>
-        <div class="note lnote" hidden>Every Riverside County building with a <b>3,000–6,000 sq ft contiguous</b> medical space available. Buildings group into three markets: Riverside and Corona, the Temecula–Murrieta corridor, and the desert cities from Palm Springs out to Indio. Hollow dots are the <b>two buildings opening in 2027</b> that are not built yet. Source: CoStar export 9/8/2026 · Riverside County only. All 53 are on the map. Every position has been checked against Google Maps at the parcel level. <b>Riverside health centers</b> adds the county's 100 permanent community health center sites with the same 1-mile rings used in Orange County, so the "miles to health center" column measures against Riverside clinics rather than across the county line. Source: HRSA Health Center Service Delivery and Look-Alike Sites, pulled 9/14/2026.</div>
+        <div class="note lnote" hidden>Every Riverside County building with a <b>3,000–6,000 sq ft contiguous</b> medical space available. Buildings group into three markets: Riverside and Corona, the Temecula–Murrieta corridor, and the desert cities from Palm Springs out to Indio. Hollow dots are the <b>two buildings opening in 2027</b> that are not built yet. Source: CoStar export 9/8/2026 · Riverside County only. All 53 are on the map, and <b>Hide availabilities within 1 mile of an FQHC</b> under them screens out the ones a Riverside health center already covers. Every position has been checked against Google Maps at the parcel level. <b>Riverside health centers</b> adds the county's 100 permanent community health center sites with the same 1-mile rings used in Orange County, so the "miles to health center" column measures against Riverside clinics rather than across the county line. Source: HRSA Health Center Service Delivery and Look-Alike Sites, pulled 9/14/2026.</div>
       </div>
 
       <div class="pgroup">
@@ -1741,8 +1744,7 @@ function refresh(){
   $('c_cs_contig').textContent = ncc;
   /* Spell out what the number does - on its own, "61" reads as either the count hidden or
    the count left behind. */
-  $('c_cs_hidden').textContent = 'hides ' + (DATA.costar.filter(r=>!r.outsideFQ).length
-    + DATA.riverside.filter(r=>!r.outsideFQ).length);
+  $('c_cs_hidden').textContent = 'hides ' + DATA.costar.filter(r=>!r.outsideFQ).length;
 
   const acute = $('t_acute').checked;
   L_hosp.clearLayers(); const cnt={Hoag:0,MemorialCare:0,Providence:0};
@@ -1761,7 +1763,14 @@ function refresh(){
   /* Riverside sits behind the Orange County shading so neither county's tint wins. */
   const rivOn = $('t_rivline').checked;
   toggle(L_rivfill, rivOn); toggle(L_rivline, rivOn);
-  toggle(L_riv, $('t_riv').checked);
+  /* Riverside gets its own ring filter, so its dots are rebuilt the same way the Orange
+     County ones are rather than toggled as a fixed group. */
+  const rivBoxOn = $('t_riv').checked, rivHide = $('t_riv_hidering').checked;
+  L_riv.clearLayers(); let nriv=0;
+  rivMarkers.forEach(m=>{ if(!rivHide || m._rec.outsideFQ){ L_riv.addLayer(m); nriv++; } });
+  toggle(L_riv, rivBoxOn);
+  $('c_riv_hidden').textContent = 'hides ' + DATA.riverside.filter(r=>!r.outsideFQ).length;
+  $('t_riv_hidering').closest('.sublist').style.opacity = rivBoxOn ? 1 : .45;
   const rfqOn = $('t_rivfq').checked, rfqExtra = $('t_rivfq_extra').checked;
   L_rivFq.clearLayers(); let nRfq=0;
   rivFqMarkers.forEach(m=>{ if(rfqOn && (!m._rec.mobile || rfqExtra)){ L_rivFq.addLayer(m); nRfq++; } });
@@ -1771,7 +1780,7 @@ function refresh(){
   $('t_rivfq_extra').closest('.sublist').style.opacity = rfqOn ? 1 : .45;
   toggle(L_rural, $('t_rural').checked);
   $('c_rural').textContent = DATA.geo.ruralTracts.features.length;
-  $('c_riv').textContent = DATA.riverside.length;
+  $('c_riv').textContent = nriv;
   /* One switch, both rings; the sub-toggle picks merged or per-location. */
   const accOn = $('t_access').checked, accEach = $('t_access_each').checked;
   toggle(L_accIso,     accOn && !accEach); toggle(L_accMi,     accOn && !accEach);
@@ -1796,7 +1805,7 @@ function refresh(){
   $('c_camino').textContent = CAM.length;
 }
 function toggle(layer,on){ if(on){ if(!map.hasLayer(layer)) map.addLayer(layer); } else { if(map.hasLayer(layer)) map.removeLayer(layer); } }
-['t_camino','t_hoag','t_memorial','t_providence','t_acute','t_centers','t_ct_extra','t_cs_contig','t_cs_south','t_cs_hidering','t_55line','t_zipchoro','t_rivline','t_riv','t_access','t_access_each','t_ocline','t_rural','t_rivfq','t_rivfq_extra']
+['t_camino','t_hoag','t_memorial','t_providence','t_acute','t_centers','t_ct_extra','t_cs_contig','t_cs_south','t_cs_hidering','t_55line','t_zipchoro','t_rivline','t_riv','t_riv_hidering','t_access','t_access_each','t_ocline','t_rural','t_rivfq','t_rivfq_extra']
   .forEach(id=>$(id).addEventListener('change',()=>{ if(activeKpi) clearKpi(); refresh(); renderTable(); syncResetBtn(); }));
 
 /* ---------- MODAL ---------- */
@@ -2019,8 +2028,10 @@ function tableRows(){
     const isRiv = r.county==='Riverside';
     /* the table follows the map, so Riverside rows come and go with their layer */
     if(isRiv && !$('t_riv').checked) return false;
-    /* the table follows the map: in-ring availabilities are listed unless the panel hides them */
-    if($('t_cs_hidering').checked && !r.outsideFQ) return false;
+    /* the table follows the map: in-ring availabilities are listed unless the panel hides them,
+       and each county answers to its own ring switch */
+    if(!isRiv && $('t_cs_hidering').checked  && !r.outsideFQ) return false;
+    if( isRiv && $('t_riv_hidering').checked && !r.outsideFQ) return false;
     if(city && r.city!==city) return false;
     if(scope==='oc'  &&  isRiv) return false;
     if(scope==='riv' && !isRiv) return false;
@@ -2057,11 +2068,11 @@ function renderTable(){
     <td class="num">${r.dCamino!=null?r.dCamino.toFixed(2):'—'}</td>
     <td class="num">${r.dFQHC!=null?r.dFQHC.toFixed(2):'—'}</td></tr>`).join('');
   /* denominator = everything the table can show (in-ring contiguous availabilities are excluded) */
-  const rivShown = $('t_riv').checked ? DATA.riverside.length : 0;
-  const hid = $('t_cs_hidering').checked;
+  const hid = $('t_cs_hidering').checked, hidR = $('t_riv_hidering').checked;
   const universe = (hid ? DATA.costar.filter(r=>r.outsideFQ).length : DATA.costar.length)
-    + (hid ? DATA.riverside.filter(r=>r.outsideFQ).length : 0) * (rivShown?1:0)
-    + (hid ? 0 : rivShown);
+    + ($('t_riv').checked
+        ? (hidR ? DATA.riverside.filter(r=>r.outsideFQ).length : DATA.riverside.length)
+        : 0);
   $('tblcount').textContent = `${rows.length} of ${universe} properties`;
   const ALLB = DATA.costar.concat(DATA.riverside);
   const nFull = ALLB.filter(r=>r.pctLeased===100 && r.availSF>0).length;
@@ -2116,7 +2127,7 @@ const KPI_ACTIONS = {
   ring: {
     recs: ()=>DATA.costar.filter(r=>r.outsideFQ).concat(DATA.riverside.filter(r=>r.outsideFQ)),
     apply: ()=>{ setChecks({t_cs_contig:true, t_cs_south:false, t_cs_hidering:true, t_centers:true,
-      t_riv:true, t_rivfq:true}); $('fscope').value='ring'; $('fcity').value=''; }
+      t_riv:true, t_riv_hidering:true, t_rivfq:true}); $('fscope').value='ring'; $('fcity').value=''; }
   },
   riverside: {
     recs: ()=>DATA.riverside,
@@ -2221,8 +2232,8 @@ const DEFAULTS = {
   t_hoag:false, t_memorial:false, t_providence:false, t_acute:false,
   t_cs_contig:true, t_cs_south:false, t_cs_hidering:false,
   t_55line:false, t_zipchoro:false,
-  t_rivline:true, t_riv:true, t_access:false, t_access_each:false, t_ocline:true,
-  t_rural:false, t_rivfq:false, t_rivfq_extra:false
+  t_rivline:true, t_riv:true, t_riv_hidering:false, t_access:false, t_access_each:false, t_ocline:true,
+  t_rural:false, t_rivfq:true, t_rivfq_extra:false
 };
 function isDefaultState(){
   for(const k in DEFAULTS){ if($(k) && $(k).checked !== DEFAULTS[k]) return false; }
@@ -2402,7 +2413,7 @@ syncResetBtn();
   const nOut = DATA.costar.filter(r=>r.outsideFQ).length;
   const nOutRV = DATA.riverside.filter(r=>r.outsideFQ).length;
   const nOutBoth = nOut + nOutRV;
-  $('tblsub').textContent = `Buildings with a 3,000–6,000 SF contiguous space available — ${nOC} in Orange County (CoStar export 9/3/2026) and ${nRV} in Riverside County (export 9/8/2026), ${nOC+nRV} in all. ${nOutBoth} of them sit more than a mile from any health center (${nOut} in Orange County, ${nOutRV} in Riverside); tick “Hide availabilities within 1 mile of an FQHC” in the panel to screen the rest out. Use the County filter to show one market at a time, and sort any column.`; }
+  $('tblsub').textContent = `Buildings with a 3,000–6,000 SF contiguous space available — ${nOC} in Orange County (CoStar export 9/3/2026) and ${nRV} in Riverside County (export 9/8/2026), ${nOC+nRV} in all. ${nOutBoth} of them sit more than a mile from any health center (${nOut} in Orange County, ${nOutRV} in Riverside); each county has its own “Hide availabilities within 1 mile of an FQHC” switch in the panel to screen the rest out. Use the County filter to show one market at a time, and sort any column.`; }
 resetMapView();
 </script>
 
