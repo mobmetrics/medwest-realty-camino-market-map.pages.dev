@@ -826,6 +826,22 @@ tbody tr:hover{background:#f0f4fa}
 .tools input,.tools select{border:1px solid var(--line);border-radius:5px;padding:6px 9px;font-size:12.5px;font-family:inherit}
 .tools input{min-width:230px}
 
+/* SCROLLING TABLE WINDOWS + EXPAND (added 9/18/2026)
+   Long tables sit in a fixed-height window with the navy header row pinned.
+   The Expand button below each one drops the height cap so the full list
+   prints down the page. Nothing is removed from the table - this is a
+   viewport only, so search, the filters and column sorting still work
+   across every row. */
+.tblscroll{max-height:500px;overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+.tblscroll.open{max-height:none}
+.gxtblscroll.open{max-height:none}
+.tblmore{display:flex;align-items:center;gap:10px;margin-top:9px;flex-wrap:wrap}
+.tblmore button{background:#fff;border:1px solid rgba(0,0,0,.2);border-radius:5px;color:var(--navy);
+  font-family:inherit;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:7px 13px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.18);line-height:1.1;white-space:nowrap}
+.tblmore button:hover{background:#eef2f7}
+.tblmore .note{font-size:12px;color:var(--muted)}
+
 /* MODAL */
 .ovl{position:fixed;inset:0;background:rgba(24,32,45,.55);display:none;align-items:flex-start;justify-content:center;z-index:9000;padding:40px 16px;overflow-y:auto}
 .ovl.on{display:flex}
@@ -1178,6 +1194,7 @@ table.gxtbl td.gxpl{min-width:118px}
       </select>
       <span class="note" id="tblcount"></span>
     </div>
+    <div class="tblscroll" id="tblScroll">
     <table id="tbl">
       <thead><tr>
         <th data-k="address" title="Street address, with the property name after the dot where CoStar lists one. Click any header to sort.">Address</th><th data-k="city" title="City the building sits in. Use the City dropdown above to narrow the list.">City</th>
@@ -1189,6 +1206,11 @@ table.gxtbl td.gxpl{min-width:118px}
       </tr></thead>
       <tbody></tbody>
     </table>
+    </div>
+    <div class="tblmore">
+      <button type="button" id="tblExpand">Expand full list ▾</button>
+      <span class="note">Scroll inside the table, or expand to print the whole list down the page.</span>
+    </div>
 
   <div id="growthPanel" hidden>
     <h2 class="sec" style="margin-top:18px">Where the Unserved Patients Are</h2>
@@ -1225,12 +1247,16 @@ table.gxtbl td.gxpl{min-width:118px}
         <div class="gxtwo">
           <div class="gxhalf">
             <div class="gxhalfhead"><span class="dot" style="background:var(--red)"></span>Best fit for Camino<span class="ct" id="gxctA"></span></div>
-            <div class="gxtblscroll"><table class="gxtbl" id="gxtblA"></table></div>
+            <div class="gxtblscroll" id="gxScrollA"><table class="gxtbl" id="gxtblA"></table></div>
           </div>
           <div class="gxhalf">
             <div class="gxhalfhead"><span class="dot" style="background:var(--navy)"></span>Every other area<span class="ct" id="gxctB"></span></div>
-            <div class="gxtblscroll"><table class="gxtbl" id="gxtblB"></table></div>
+            <div class="gxtblscroll" id="gxScrollB"><table class="gxtbl" id="gxtblB"></table></div>
           </div>
+        </div>
+        <div class="tblmore">
+          <button type="button" id="gxExpandTbl">Expand both lists ▾</button>
+          <span class="note">Scroll inside either list, or expand to print both down the page.</span>
         </div>
       </div>
     </div>
@@ -2963,6 +2989,26 @@ resetMapView();
         b.classList.toggle('on', b===f);});
       render(); }
   });
+})();
+</script>
+
+<script>
+/* Expand / collapse for the scrolling table windows (added 9/18/2026). */
+(function(){
+  function wire(btnId, boxIds, shutLabel, openLabel){
+    var b = document.getElementById(btnId);
+    var boxes = boxIds.map(function(id){ return document.getElementById(id); })
+                      .filter(function(el){ return !!el; });
+    if(!b || !boxes.length) return;
+    b.addEventListener('click', function(){
+      var open = !boxes[0].classList.contains('open');
+      boxes.forEach(function(el){ el.classList.toggle('open', open); });
+      b.textContent = open ? openLabel : shutLabel;
+      if(!open && boxes[0].scrollIntoView){ boxes[0].scrollIntoView({block:'nearest'}); }
+    });
+  }
+  wire('tblExpand', ['tblScroll'], 'Expand full list \u25be', 'Collapse \u25b4');
+  wire('gxExpandTbl', ['gxScrollA','gxScrollB'], 'Expand both lists \u25be', 'Collapse \u25b4');
 })();
 </script>
 
