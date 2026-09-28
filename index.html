@@ -1019,15 +1019,15 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:26px 0 10px}
 
       <div class="pgroup">
         <h4>Wider Size Range (2,000&ndash;20,000 SF)</h4>
-        <label class="tog"><input type="checkbox" id="t_oc2k" checked><span class="sw" style="background:#dc2f3a"></span>Orange County 2&ndash;20K SF<span class="ct" id="c_oc2k"></span></label>
+        <label class="tog"><input type="checkbox" id="t_oc2k" checked><span class="sw" style="background:#29374D"></span>Orange County 2&ndash;20K SF<span class="ct" id="c_oc2k"></span></label>
         <div class="sublist">
           <label class="tog" title="Drops every Orange County building in this size range already sitting within 1 mile of a health center, leaving the ones in areas no health center covers."><input type="checkbox" id="t_oc2k_hidering">Hide those within 1 mile of a health center<span class="ct" id="c_oc2k_hidden"></span></label>
         </div>
-        <label class="tog"><input type="checkbox" id="t_riv2k" checked><span class="sw" style="background:#dc2f3a"></span>Riverside 2&ndash;20K SF<span class="ct" id="c_riv2k"></span></label>
+        <label class="tog"><input type="checkbox" id="t_riv2k" checked><span class="sw" style="background:#29374D"></span>Riverside 2&ndash;20K SF<span class="ct" id="c_riv2k"></span></label>
         <div class="sublist">
           <label class="tog" title="Drops every Riverside building in this size range already sitting within 1 mile of a Riverside health center, leaving the ones in areas no health center covers."><input type="checkbox" id="t_riv2k_hidering">Hide those within 1 mile of a health center<span class="ct" id="c_riv2k_hidden"></span></label>
         </div>
-        <div class="note lnote" hidden>Every medical building with between <b>2,000 and 20,000 sq ft</b> of space available, across Orange and Riverside counties. This is the wider search the client asked for on 16 September 2026 and it sits alongside the 3&ndash;6K contiguous screen rather than replacing it, so either size band can be read on its own. Pins group into numbered circles at county zoom and split apart as you zoom in. CoStar data pulled 9/16/2026.</div>
+        <div class="note lnote" hidden>Every medical building with between <b>2,000 and 20,000 sq ft</b> of space available, across Orange and Riverside counties. This is the wider search the client asked for on 16 September 2026 and it sits alongside the 3&ndash;6K contiguous screen rather than replacing it, so either size band can be read on its own. Shown in the same navy as the 3&ndash;6K screen; click a dot to see which search it came from. CoStar data pulled 9/16/2026.</div>
       </div>
 
       <div class="pgroup">
@@ -1072,9 +1072,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:26px 0 10px}
       <div data-lyr="t_access"><i style="width:18px;height:0;border-radius:0;border-top:2px dashed #4FA3EA"></i> Within 15 miles</div>
       <div data-lyr="t_55line"><i style="width:18px;height:0;border-radius:0;border-top:2px dashed #7c8ca3"></i> SR-55 alignment</div>
       <div data-lyr="t_centers"><i style="background:var(--hrsa)"></i> HRSA-listed only</div>
-      <div data-lyr="t_oc2k"><i style="background:#dc2f3a"></i> Orange County 2–20K SF available</div>
-      <div data-lyr="t_riv2k"><i style="background:#dc2f3a"></i> Riverside 2–20K SF available</div>
-      <div data-lyr="t_oc2k"><i style="background:#dc2f3a;border:2px solid #fff"></i> Number = how many buildings are grouped there</div>
+      <div data-lyr="t_oc2k"><i style="background:#29374D"></i> Orange County 2–20K SF available</div>
+      <div data-lyr="t_riv2k"><i style="background:#29374D"></i> Riverside 2–20K SF available</div>
       <div data-lyr="t_cs_contig"><i style="background:#29374D"></i> Orange County availabilities</div>
       <div data-lyr="t_zipchoro"><i style="width:36px;height:9px;border-radius:2px;background:linear-gradient(90deg,#1a9850,#a6d96a,#fee08b,#f46d43,#d73027)"></i> Patient volume low → high</div>
     </div>
@@ -1679,15 +1678,14 @@ DATA.riv2k = [{"id":"n_8110782","pid":"8110782","address":"74050 Alessandro Dr",
 })();
 
 /* ---------- 2k-20k LAYERS ---------- */
-/* MedWest red, not the navy the existing availabilities use. With both size bands on at
-   once the reader needs to tell at a glance which set a dot belongs to, and red is the
-   brand's second colour. */
-var C2K = '#dc2f3a';
+/* Same MedWest navy and dot size as the 3-6K contiguous availabilities (per Tori 9/28/2026).
+   The two size bands are told apart by the popup, which names the 2,000-20,000 sq ft search. */
+var C2K = '#29374D';
 
 function make2kMarker(p){
-  var m = L.circleMarker([p.lat,p.lng],{radius:6,color:'#fff',weight:1.5,
-          fillColor:C2K,fillOpacity:.92});
-  m._base = {radius:6,color:'#fff',weight:1.5,fillOpacity:.92};
+  var m = L.circleMarker([p.lat,p.lng],{radius:7,color:'#fff',weight:1.6,
+          fillColor:C2K,fillOpacity:.95});
+  m._base = {radius:7,color:'#fff',weight:1.6,fillOpacity:.95};
   var bits = [];
   if(p.availSF) bits.push(fmt(p.availSF)+' sq ft available');
   else bits.push('Available space not listed by CoStar');
@@ -1722,7 +1720,7 @@ ClusterLayer.prototype.draw = function(){
   var z = map.getZoom(), CELL = 55, cells = {}, self = this;
   /* Past this zoom every pin is drawn on its own - the reader is looking at a street,
      not a county, and a bubble would hide the thing they zoomed in to see. */
-  if(z >= 15){
+  if(this.noCluster || z >= 15){
     this.markers.forEach(function(m){ self.group.addLayer(m); });
     return;
   }
@@ -1751,6 +1749,8 @@ ClusterLayer.prototype.setOn = function(v){ this.on = v; this.draw(); };
 
 var CL_oc2k  = new ClusterLayer(oc2kMarkers).addTo(map);
 var CL_riv2k = new ClusterLayer(riv2kMarkers).addTo(map);
+/* Single dots at every zoom, like the 3-6K layer (per Tori 9/28/2026) - no numbered circles. */
+CL_oc2k.noCluster = true; CL_riv2k.noCluster = true;
 map.on('zoomend moveend', function(){ CL_oc2k.draw(); CL_riv2k.draw(); });
 
 
