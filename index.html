@@ -956,6 +956,41 @@ html.mw-embed #kpis .kpi.active{background:#f2f6fc!important;box-shadow:inset 0 
 .up-lg{background:#fff;border-radius:6px;padding:5px 9px;font-size:11.5px;color:#29374D;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .up-lg i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#7B4FB0;margin-right:5px;vertical-align:-1px}
 </style>
+<style id="site-check">
+/* ===== Check one location / Compare sites (added 22 Oct 2026) ===== */
+.sc-box{margin:0 0 12px}
+.sc-tabs{display:flex;border:1.5px solid #29374D;border-radius:6px;overflow:hidden;margin-bottom:10px}
+.sc-tabs button{flex:1;border:0;background:#fff;color:#29374D;font:inherit;font-size:11.5px;font-weight:700;padding:7px 2px;cursor:pointer;white-space:nowrap}
+.sc-tabs button.on{background:#29374D;color:#fff}
+.sc-h{display:flex;justify-content:space-between;align-items:baseline;margin:2px 0 7px}
+.sc-h h3{margin:0;font-size:14px;color:#29374D}.sc-h span{font-size:10.5px;color:#6b7486}
+.sc-empty{border:1px dashed #d6dbe3;border-radius:6px;padding:9px 10px;font-size:11.5px;color:#5b6577;margin-bottom:8px}
+.sc-form{display:flex;gap:6px;margin-bottom:6px}
+.sc-form input{flex:1;min-width:0;border:1.5px solid #29374D;border-radius:6px;padding:8px 9px;font:inherit;font-size:13px;color:#29374D}
+.sc-form button{border:0;background:#29374D;color:#fff;border-radius:6px;padding:0 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.sc-msg{font-size:11.5px;color:#DC2F3A;min-height:14px;margin-bottom:4px}
+.sc-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.sc-item{display:flex;align-items:center;gap:8px;border:1px solid #DDE3EC;border-radius:6px;padding:6px 8px;font-size:12px;color:#29374D}
+.sc-item b.n{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#DC2F3A;color:#fff;font-size:11px;flex:none}
+.sc-item .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-item button{border:0;background:none;color:#6b7486;cursor:pointer;font-size:13px}
+.sc-card{background:#fff;border:1px solid #DDE3EC;border-left:5px solid #DC2F3A;border-radius:8px;padding:9px 11px;margin-bottom:8px}
+.sc-card .k{font-size:10px;letter-spacing:.07em;color:#6b7486;text-transform:uppercase}
+.sc-card h4{margin:2px 0 6px;font-size:14px;color:#29374D}
+.sc-tbl{width:100%;border-collapse:collapse;font-size:12px;color:#29374D}
+.sc-tbl td,.sc-tbl th{padding:5px 3px;border-bottom:1px solid #eef0f3;vertical-align:top}
+.sc-tbl td+td,.sc-tbl th+th{text-align:right;font-weight:700;max-width:45%}
+.sc-tbl th{font-size:11px;color:#29374D;font-weight:700}
+.sc-tbl th b.n{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#DC2F3A;color:#fff;font-size:10px}
+.sc-tbl td.best{color:#2e7d32}
+.sc-row{padding:6px 0;border-bottom:1px solid #eef0f3}.sc-row:last-of-type{border-bottom:0}
+.sc-lbl{font-size:11.5px;color:#5b6577;margin-bottom:3px;line-height:1.3}
+.sc-v{display:flex;align-items:flex-start;gap:6px;font-size:12.5px;font-weight:700;color:#29374D;line-height:1.35;padding:1px 0}
+.sc-v b.n{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#DC2F3A;color:#fff;font-size:9.5px;flex:none;margin-top:1px}
+.sc-v.best span{color:#2e7d32}
+.sc-note{font-size:10.5px;color:#6b7486;margin-top:5px;line-height:1.35}
+.sc-pin{background:#DC2F3A;color:#fff;border:2px solid #fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+</style>
 </head>
 <body>
 <div id="signin-gate">
@@ -991,6 +1026,22 @@ html.mw-embed #kpis .kpi.active{background:#f2f6fc!important;box-shadow:inset 0 
     <div style="position:relative"><div id="map"></div>
     </div>
     <div class="panel">
+      <!-- Check one location / Compare sites (added 22 Oct 2026) -->
+      <div id="sc-box" class="sc-box">
+        <div class="sc-tabs" id="sc-tabs"><button type="button" data-t="one">Check one location</button><button type="button" data-t="two" class="on">Compare sites</button></div>
+        <div id="sc-one" hidden>
+          <form class="sc-form" id="sc-one-form" autocomplete="off"><input id="sc-one-q" type="text" placeholder="Address, city or ZIP code…" aria-label="Check a location"><button type="submit">Check</button></form>
+          <div class="sc-msg" id="sc-one-msg"></div>
+          <div id="sc-one-out"></div>
+        </div>
+        <div id="sc-two">
+          <div class="sc-h"><h3>Sites in this comparison</h3><span>up to 3</span></div>
+          <div id="sc-list"></div>
+          <form class="sc-form" id="sc-two-form" autocomplete="off"><input id="sc-two-q" type="text" placeholder="Add an address, city or ZIP code…" aria-label="Add a site"><button type="submit">Add</button></form>
+          <div class="sc-msg" id="sc-two-msg"></div>
+          <div id="sc-two-out"></div>
+        </div>
+      </div>
       <!-- Add your own patients (added 22 Oct 2026): read in the browser only, never uploaded -->
       <div id="up-box" class="upbox">
         <div class="up-h">Add your own patients</div>
@@ -3092,6 +3143,7 @@ resetMapView();
   const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const nf=n=>Number(n).toLocaleString('en-US');
   const PURPLE='#7B4FB0';
+  window.__ZIPLL=ZIPLL;
   const Lup=L.layerGroup(); let lg=null;
   function loadXLSX(){
     return new Promise((ok,bad)=>{
@@ -3163,6 +3215,91 @@ resetMapView();
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
     a.download='Camino_add_patients_template.csv'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
   });
+})();
+</script>
+<script>
+/* =====================================================================
+   CHECK ONE LOCATION / COMPARE SITES (added 22 Oct 2026)
+   Type an address, city or ZIP code. ZIP codes are placed locally; anything else
+   is looked up with OpenStreetMap's free Nominatim service (only the typed site
+   address is sent — no patient data). Each site gets a 15-mile ring and a
+   scorecard. All distances are straight-line miles.
+   ===================================================================== */
+(function(){
+  const g=id=>document.getElementById(id);
+  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const nf=n=>Number(n).toLocaleString('en-US');
+  const R=15, NEAR=1, RED='#DC2F3A';
+  const mi=(a,b,c,d)=>{const r=3958.7613,p1=a*Math.PI/180,p2=c*Math.PI/180,h=Math.sin((p2-p1)/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin((d-b)*Math.PI/360)**2;return 2*r*Math.asin(Math.sqrt(h));};
+  const ZL=()=>window.__ZIPLL||{};
+  const centers=()=>(DATA.centers||[]).concat((DATA.riversideCenters&&DATA.riversideCenters.permanent)||[]);
+  const spaces=()=>(DATA.oc2k||[]).concat(DATA.riv2k||[]);
+  const totP25=(DATA.patientZips||[]).reduce((a,z)=>a+(z.p25||0),0);
+  function score(p){
+    const Z=ZL(), inR=(o)=>o&&o.lat!=null&&mi(p.lat,p.lon,o.lat,o.lng)<=R;
+    let p25=0,p26=0; (DATA.patientZips||[]).forEach(z=>{const ll=Z[z.zip]; if(ll&&mi(p.lat,p.lon,ll[0],ll[1])<=R){p25+=z.p25||0;p26+=z.p26||0;}});
+    const cam=(DATA.camino||[]).map(c=>({n:c.name,m:mi(p.lat,p.lon,c.lat,c.lng)})).sort((a,b)=>a.m-b.m);
+    const hc=centers().filter(c=>c.lat!=null);
+    return {
+      p25,p26,pct:totP25?Math.round(100*p25/totP25):0,
+      near:cam[0], camIn:cam.filter(c=>c.m<=R).length,
+      hc1:hc.filter(c=>mi(p.lat,p.lon,c.lat,c.lng)<=NEAR).length, hcR:hc.filter(inR).length,
+      sp:spaces().filter(inR).length, hosp:(DATA.hospitals||[]).filter(inR).length
+    };
+  }
+  const ROWS=[
+    ['Camino patients within 15 miles (2025)',s=>nf(s.p25)+' <span style="font-weight:400;color:#6b7486">('+s.pct+'%)</span>',s=>s.p25,'max'],
+    ['Camino patients within 15 miles (2026 so far)',s=>nf(s.p26),s=>s.p26,'max'],
+    ['Nearest Camino site',s=>s.near?esc(s.near.n)+' · '+s.near.m.toFixed(1)+' mi':'—',null],
+    ['Camino sites inside 15 miles',s=>String(s.camIn),null],
+    ['Health centers within 1 mile',s=>String(s.hc1),s=>s.hc1,'min'],
+    ['Health centers inside 15 miles',s=>String(s.hcR),null],
+    ['Available medical spaces (2–20K SF) inside 15 miles',s=>nf(s.sp),s=>s.sp,'max'],
+    ['Hospital & clinic sites inside 15 miles',s=>nf(s.hosp),null]
+  ];
+  async function geocode(q){
+    q=String(q||'').trim(); if(!q) throw new Error('Type an address, city or ZIP code.');
+    const zm=q.match(/^\s*(\d{5})(?:-\d{4})?\s*$/);
+    if(zm){ const ll=ZL()[zm[1]]; if(ll) return {lat:ll[0],lon:ll[1],label:'ZIP '+zm[1]}; throw new Error('That ZIP code isn\u2019t in California or Arizona.'); }
+    const u='https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&viewbox=-118.2,34.3,-116.0,33.2&q='+encodeURIComponent(/\b(ca|california)\b/i.test(q)?q:q+', California');
+    const r=await fetch(u,{headers:{'Accept':'application/json'}}); if(!r.ok) throw new Error('Address lookup is busy — try again in a moment.');
+    const j=await r.json(); if(!j.length) throw new Error('Couldn\u2019t find that place. Try adding the city or ZIP code.');
+    return {lat:+j[0].lat,lon:+j[0].lon,label:q};
+  }
+  const Lsc=L.layerGroup().addTo(map);
+  const pin=(p,n)=>L.marker([p.lat,p.lon],{icon:L.divIcon({className:'',html:'<div class="sc-pin">'+n+'</div>',iconSize:[22,22],iconAnchor:[11,11]})}).bindTooltip('<b>'+n+' · '+esc(p.label)+'</b>');
+  const ring=p=>L.circle([p.lat,p.lon],{radius:R*1609.344,color:RED,weight:2,dashArray:'8 6',fillColor:RED,fillOpacity:.05,interactive:false});
+  let mode='two', one=null, sites=[];
+  function draw(){
+    Lsc.clearLayers();
+    const list=mode==='one'?(one?[one]:[]):sites;
+    list.forEach((p,i)=>{ ring(p).addTo(Lsc); pin(p,mode==='one'?'✓':i+1).addTo(Lsc); });
+    if(list.length){ try{ map.fitBounds(L.latLngBounds(list.map(p=>[p.lat,p.lon])).pad(.1).extend(list.map(p=>[p.lat+R/69,p.lon])),{maxZoom:10}); }catch(e){} }
+  }
+  function renderOne(){
+    const o=g('sc-one-out'); if(!one){ o.innerHTML=''; return; }
+    const s=score(one);
+    o.innerHTML='<div class="sc-card"><div class="k">Checked location</div><h4>'+esc(one.label)+'</h4>'+ROWS.map(r=>'<div class="sc-row"><div class="sc-lbl">'+r[0]+'</div><div class="sc-v"><span>'+r[1](s)+'</span></div></div>').join('')+'<div class="sc-note">Red dashed circle = 15 miles. Distances are straight-line miles.</div></div>';
+  }
+  function renderTwo(){
+    g('sc-list').innerHTML = sites.length ? '<div class="sc-list">'+sites.map((p,i)=>'<div class="sc-item"><b class="n">'+(i+1)+'</b><span class="t" title="'+esc(p.label)+'">'+esc(p.label)+'</span><button type="button" data-i="'+i+'" aria-label="Remove">✕</button></div>').join('')+'</div>'
+      : '<div class="sc-empty">No sites yet. Add up to three addresses, cities or ZIP codes below.</div>';
+    g('sc-list').querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{ sites.splice(+b.dataset.i,1); renderTwo(); draw(); });
+    const o=g('sc-two-out'); if(!sites.length){ o.innerHTML=''; return; }
+    const S=sites.map(score);
+    o.innerHTML='<div class="sc-card" style="border-left-color:#29374D"><div class="k">Side by side</div>'
+      +ROWS.map(r=>{ let best=null; if(r[2]&&S.length>1){ const v=S.map(r[2]); const t=r[3]==='max'?Math.max(...v):Math.min(...v); if(v.filter(x=>x===t).length<v.length) best=t; }
+        return '<div class="sc-row"><div class="sc-lbl">'+r[0]+'</div>'+S.map((s,i)=>'<div class="sc-v'+(best!==null&&r[2](s)===best?' best':'')+'"><b class="n">'+(i+1)+'</b><span>'+r[1](s)+'</span></div>').join('')+'</div>'; }).join('')
+      +'<div class="sc-note">Green = best of the sites compared. Red dashed circles = 15 miles; straight-line miles.</div></div>';
+  }
+  g('sc-tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{ mode=b.dataset.t; g('sc-tabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); g('sc-one').hidden=mode!=='one'; g('sc-two').hidden=mode!=='two'; draw(); });
+  g('sc-one-form').addEventListener('submit',async e=>{ e.preventDefault(); const m=g('sc-one-msg'); m.textContent='Looking up…';
+    try{ one=await geocode(g('sc-one-q').value); m.textContent=''; renderOne(); draw(); }catch(err){ m.textContent=err.message; } });
+  g('sc-two-form').addEventListener('submit',async e=>{ e.preventDefault(); const m=g('sc-two-msg');
+    if(sites.length>=3){ m.textContent='Up to three sites — remove one to add another.'; return; }
+    m.textContent='Looking up…';
+    try{ const p=await geocode(g('sc-two-q').value); sites.push(p); g('sc-two-q').value=''; m.textContent=''; renderTwo(); draw(); }catch(err){ m.textContent=err.message; } });
+  renderTwo();
 })();
 </script>
 </body>
